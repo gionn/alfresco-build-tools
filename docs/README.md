@@ -2203,7 +2203,7 @@ Xvfb session using ffmpeg, and uploads the recording as an artifact.
 
 ```yaml
       - name: Functional tests
-        uses: Alfresco/alfresco-build-tools/.github/actions/xvfb-record@v10.2.0
+        uses: Alfresco/alfresco-build-tools/.github/actions/xvfb-record@v10.5.0
         with:
           test_command: mvn -ntp install -Pftest -DskipInstall
           timeout_minutes: 120 # optional, default is 60
@@ -2226,7 +2226,7 @@ Check `action.yml` for the full list of inputs and their descriptions.
 Publish Nuxeo package to Nuxeo Online Services (NOS).
 
 ```yaml
-      - uses: Alfresco/alfresco-build-tools/.github/actions/nos-publish@v10.1.0
+      - uses: Alfresco/alfresco-build-tools/.github/actions/nos-publish@v10.5.0
         with:
           nos-env: production # Market place target env (either 'production' or 'staging')
           nos-username: ${{ secrets.NOS_CONNECT_USERNAME }}
@@ -2257,7 +2257,7 @@ Pushes the resulting image to a target registry (default `ghcr.io`) and outputs 
 
 ```yaml
       - name: Build Nuxeo image
-        uses: Alfresco/alfresco-build-tools/.github/actions/nuxeo/nuxeo-docker-build@v10.1.0
+        uses: Alfresco/alfresco-build-tools/.github/actions/nuxeo/nuxeo-docker-build@v10.5.0
         with:
           base-image-tag: 2023
           base-registry-username: ${{ secrets.NUXEO_REGISTRY_USERNAME }}
@@ -2366,7 +2366,7 @@ jobs:
     release:
         name: Release
         if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
-        uses: Alfresco/alfresco-build-tools/.github/workflows/reusable-release.yml@v10.3.0
+        uses: Alfresco/alfresco-build-tools/.github/workflows/reusable-release.yml@v10.5.0
         with:
           release_type_override: ${{ inputs.release_type }}
           commit_username: ${{ vars.BOT_GITHUB_USERNAME }}
