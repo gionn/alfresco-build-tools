@@ -151,10 +151,11 @@ runs:
 
     - name: Build Maven using provided command
       shell: bash
-      run: mvn ${{ inputs.maven-command  }} ${{ env.MAVEN_CLI_OPTS }} ${{ env.MAVEN_RESOLVER_TRANSPORT_OPTS }}
+      run: mvn ${INPUTS_MAVEN_COMMAND} ${MAVEN_CLI_OPTS} ${MAVEN_RESOLVER_TRANSPORT_OPTS}
       env:
         MAVEN_RESOLVER_TRANSPORT_OPTS: ${{ inputs.maven-resolver-transport-options }}
         MAVEN_CLI_OPTS: ${{ steps.maven-configure.outputs.maven-options }} -Dlogging.root.level=off -Dspring.main.banner-mode=off -Ddocker.skip
+        INPUTS_MAVEN_COMMAND: ${{ inputs.maven-command  }}
 
     - name: Remove running docker containers
       if: inputs.reuse-testcontainers == 'true'
@@ -172,27 +173,33 @@ runs:
       id: get-jacoco-report-path
       shell: bash
       run: |
-        if [ "${{ inputs.jacoco-report-name }}" != "" ]
+        if [ "${INPUTS_JACOCO_REPORT_NAME}" != "" ]
         then
-          echo "path=${{ github.workspace }}/target/${{ inputs.jacoco-report-name }}.exec" >> $GITHUB_OUTPUT
+          echo "path=${{ github.workspace }}/target/${INPUTS_JACOCO_REPORT_NAME}.exec" >> $GITHUB_OUTPUT
         fi
+      env:
+        INPUTS_JACOCO_REPORT_NAME: ${{ inputs.jacoco-report-name }}
 
     - name: Merge Jacoco Reports
       if: inputs.jacoco-report-name != ''
       shell: bash
       env:
         MAVEN_RESOLVER_TRANSPORT_OPTS: ${{ inputs.maven-resolver-transport-options }}
+        STEPS_GET_JACOCO_REPORT_PATH_OUTPUTS_PATH: ${{ steps.get-jacoco-report-path.outputs.path }}
       run: |
-        mvn -N jacoco:merge -Djacoco.destFile=${{ steps.get-jacoco-report-path.outputs.path }} ${MAVEN_RESOLVER_TRANSPORT_OPTS}
+        mvn -N jacoco:merge -Djacoco.destFile=${STEPS_GET_JACOCO_REPORT_PATH_OUTPUTS_PATH} ${MAVEN_RESOLVER_TRANSPORT_OPTS}
 
     - name: Update Jacoco Reports
       if: inputs.jacoco-report-name != ''
       shell: bash
       env:
         MAVEN_RESOLVER_TRANSPORT_OPTS: ${{ inputs.maven-resolver-transport-options }}
+        STEPS_GET_JACOCO_REPORT_PATH_OUTPUTS_PATH: ${{ steps.get-jacoco-report-path.outputs.path }}
+        INPUTS_JACOCO_REPORT_NAME: ${{ inputs.jacoco-report-name }}
+        INPUTS_JACOCO_REPORT_OPTIONS: ${{ inputs.jacoco-report-options }}
       run: |
-        mvn jacoco:report -Djacoco.dataFile=${{ steps.get-jacoco-report-path.outputs.path }} \
-          -Djacoco-report-dir-suffix=${{ inputs.jacoco-report-name }} ${{ inputs.jacoco-report-options }} ${MAVEN_RESOLVER_TRANSPORT_OPTS}
+        mvn jacoco:report -Djacoco.dataFile=${STEPS_GET_JACOCO_REPORT_PATH_OUTPUTS_PATH} \
+          -Djacoco-report-dir-suffix=${INPUTS_JACOCO_REPORT_NAME} ${INPUTS_JACOCO_REPORT_OPTIONS} ${MAVEN_RESOLVER_TRANSPORT_OPTS}
 
     - name: Upload target folders
       if: inputs.target-folder-upload-name != ''

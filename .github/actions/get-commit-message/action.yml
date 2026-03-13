@@ -20,9 +20,10 @@ runs:
       env:
         CURRENT_SHA: ${{ (startsWith(github.event_name, 'pull_request') && github.event.pull_request.head.sha) || github.event.after || github.sha }}
         EOF: EOF_2a5723ea-e2e0-4463-b33a-181b162995a2
+        INPUTS_HEADER_ONLY: ${{ inputs.header-only }}
       run: |
         MSG=$(git log --format=%B -n 1 "$CURRENT_SHA")
-        if [ "${{ inputs.header-only }}" = "true" ]; then
+        if [ "${INPUTS_HEADER_ONLY}" = "true" ]; then
           MSG=$(echo "$MSG" | head -n 1)
         fi
 

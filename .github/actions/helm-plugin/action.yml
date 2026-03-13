@@ -17,6 +17,9 @@ runs:
       shell: bash
       run: |
         set -e
-        [ ${{ inputs.plugin_version }} != 'latest' ] && \
-        VER="--version ${{ inputs.plugin_version }}"
-        helm plugin install ${{ inputs.plugin_url }} $VER
+        [ ${INPUTS_PLUGIN_VERSION} != 'latest' ] && \
+        VER="--version ${INPUTS_PLUGIN_VERSION}"
+        helm plugin install ${INPUTS_PLUGIN_URL} $VER
+      env:
+        INPUTS_PLUGIN_VERSION: ${{ inputs.plugin_version }}
+        INPUTS_PLUGIN_URL: ${{ inputs.plugin_url }}

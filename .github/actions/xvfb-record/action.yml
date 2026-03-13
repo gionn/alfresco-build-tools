@@ -46,13 +46,13 @@ runs:
       run: |
         sudo apt-get update
         sudo apt-get install -y xvfb ffmpeg jwm x11-apps
-        echo "Setting up Xvfb on display :${{ inputs.display_number }}"
-        xvfb-run -n ${{ inputs.display_number }} -f "${HOME}/.Xauthority" -s "-screen 0 1200x1080x24" jwm &
+        echo "Setting up Xvfb on display :${INPUTS_DISPLAY_NUMBER}"
+        xvfb-run -n ${INPUTS_DISPLAY_NUMBER} -f "${HOME}/.Xauthority" -s "-screen 0 1200x1080x24" jwm &
         XVFB_PID=$!
         sleep 3
         kill -0 "$XVFB_PID" 2>/dev/null || { echo "Xvfb failed to start"; exit 1; }
-        if [ -n "${{ inputs.video_name }}" ]; then
-          ffmpeg -y -nostdin -f x11grab -i :${{ inputs.display_number }} -s sxga ${{ inputs.video_name }}.${{ inputs.video_extension }} > ffmpeg.log 2>&1 &
+        if [ -n "${INPUTS_VIDEO_NAME}" ]; then
+          ffmpeg -y -nostdin -f x11grab -i :${INPUTS_DISPLAY_NUMBER} -s sxga ${INPUTS_VIDEO_NAME}.${INPUTS_VIDEO_EXTENSION} > ffmpeg.log 2>&1 &
           FFMPEG_PID=$!
           echo "FFMPEG_PID=$FFMPEG_PID" >> "$GITHUB_OUTPUT"
         else
@@ -62,6 +62,9 @@ runs:
       env:
         DEBIAN_FRONTEND: noninteractive
         FFREPORT: file=ffmpeg.log:level=info
+        INPUTS_DISPLAY_NUMBER: ${{ inputs.display_number }}
+        INPUTS_VIDEO_NAME: ${{ inputs.video_name }}
+        INPUTS_VIDEO_EXTENSION: ${{ inputs.video_extension }}
       working-directory: ${{ runner.temp }}
 
     - name: Run tests using command ${{ inputs.test_command }}

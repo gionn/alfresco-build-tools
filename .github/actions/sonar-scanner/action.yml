@@ -26,6 +26,10 @@ runs:
     - name: Load JaCoCo report on SonarCloud
       env:
         SONAR_TOKEN: ${{ inputs.sonar-token }}
+        INPUTS_SONAR_HOST_URL: ${{ inputs.sonar-host-url }}
+        INPUTS_SONAR_ORGANIZATION: ${{ inputs.sonar-organization }}
+        INPUTS_PROJECT_KEY: ${{ inputs.project-key }}
+        INPUTS_AGGREGATE_REPORT_PATH: ${{ inputs.aggregate-report-path }}
       shell: bash
       run: |
-        mvn sonar:sonar -Dsonar.host.url=${{ inputs.sonar-host-url }} -Dsonar.organization=${{ inputs.sonar-organization }} -Dsonar.projectKey=${{ inputs.project-key }} -Dsonar.coverage.jacoco.xmlReportPaths=${{ inputs.aggregate-report-path }}
+        mvn sonar:sonar -Dsonar.host.url=${INPUTS_SONAR_HOST_URL} -Dsonar.organization=${INPUTS_SONAR_ORGANIZATION} -Dsonar.projectKey=${INPUTS_PROJECT_KEY} -Dsonar.coverage.jacoco.xmlReportPaths=${INPUTS_AGGREGATE_REPORT_PATH}

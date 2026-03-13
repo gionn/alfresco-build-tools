@@ -23,10 +23,12 @@ runs:
       shell: bash
       env:
         CHART_REPO_DIR: ${{ inputs.chart-repository-dir }}
+        INPUTS_NEW_VERSION: ${{ inputs.new-version }}
+        INPUTS_CHART_DIR: ${{ inputs.chart-dir }}
       run: |
         if [ -n "$CHART_REPO_DIR" ]
         then
           cd $CHART_REPO_DIR
         fi
-        yq -i e '.version = "${{ inputs.new-version }}"' ${{ inputs.chart-dir }}/Chart.yaml
+        yq -i e '.version = "${INPUTS_NEW_VERSION}"' ${INPUTS_CHART_DIR}/Chart.yaml
         helm-docs

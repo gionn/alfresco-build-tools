@@ -23,11 +23,13 @@ runs:
       run: |
         SRCCLR_SCM_URI="${{ github.server_url }}/${{ github.repository }}"
 
-        if [ -n "${{ inputs.srcclr-project-ext }}" ]; then
-          SRCCLR_SCM_URI="$SRCCLR_SCM_URI/${{ inputs.srcclr-project-ext }}"
+        if [ -n "${INPUTS_SRCCLR_PROJECT_EXT}" ]; then
+          SRCCLR_SCM_URI="$SRCCLR_SCM_URI/${INPUTS_SRCCLR_PROJECT_EXT}"
         fi
 
         echo "SRCCLR_SCM_URI=$SRCCLR_SCM_URI" >> $GITHUB_ENV
+      env:
+        INPUTS_SRCCLR_PROJECT_EXT: ${{ inputs.srcclr-project-ext }}
     - name: "Run scanning"
       run: ${{ github.action_path }}/source_clear.sh
       shell: bash

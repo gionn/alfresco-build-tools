@@ -1,0 +1,7 @@
+rules:
+  secrets-outside-env:
+    disable: true
+  unpinned-uses:
+    config:
+      policies:
+        "Alfresco/alfresco-build-tools/*": ref-pin

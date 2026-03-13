@@ -46,6 +46,7 @@ runs:
         repository: ${{ inputs.helm-charts-repo }}
         ref: ${{ inputs.helm-charts-repo-branch }}
         token: ${{ inputs.token}}
+        persist-credentials: false
 
     - name: Build base URL option
       id: build-base-url-option

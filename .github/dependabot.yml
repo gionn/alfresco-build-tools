@@ -20,11 +20,15 @@ updates:
       github-actions:
         patterns:
           - "*"
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: "pip"
     directory: "/.github/actions/pipenv"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
 
   # Python testing dependencies
   - package-ecosystem: "pip"
@@ -39,6 +43,8 @@ updates:
       prefix: "feat(deps)"
       prefix-development: "chore(deps)"
     open-pull-requests-limit: 20
+    cooldown:
+      default-days: 7
 
   # jira-get-or-create-release action
   - package-ecosystem: "pip"
@@ -52,6 +58,8 @@ updates:
       prefix: "feat(deps)"
       prefix-development: "chore(deps)"
     open-pull-requests-limit: 10
+    cooldown:
+      default-days: 7
 
   # jira-set-fix-version action
   - package-ecosystem: "pip"
@@ -65,3 +73,5 @@ updates:
       prefix: "feat(deps)"
       prefix-development: "chore(deps)"
     open-pull-requests-limit: 10
+    cooldown:
+      default-days: 7

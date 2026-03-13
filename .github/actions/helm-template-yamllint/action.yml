@@ -24,15 +24,21 @@ runs:
   steps:
     - name: Cleanup output dir
       shell: bash
-      run: rm -fr ${{ inputs.output-dir }}
+      run: rm -fr ${INPUTS_OUTPUT_DIR}
+      env:
+        INPUTS_OUTPUT_DIR: ${{ inputs.output-dir }}
     - name: Render templates
       shell: bash
       working-directory: ${{ inputs.chart-dir }}
-      run: helm template . --output-dir ${{ inputs.output-dir }} ${{ inputs.helm-options }}
+      run: helm template . --output-dir ${INPUTS_OUTPUT_DIR} ${INPUTS_HELM_OPTIONS}
+      env:
+        INPUTS_OUTPUT_DIR: ${{ inputs.output-dir }}
+        INPUTS_HELM_OPTIONS: ${{ inputs.helm-options }}
     - name: Lint
       env:
         YAMLLINT_CONFIG_FILE: ${{ inputs.yamllint-config-path }}
+        INPUTS_OUTPUT_DIR: ${{ inputs.output-dir }}
       shell: bash
       run: |
         YAMLLINT_CONFIG_FILE="${YAMLLINT_CONFIG_FILE:=${{ github.action_path }}/.yamllint.yml}"
-        yamllint ${{ inputs.output-dir }}
+        yamllint ${INPUTS_OUTPUT_DIR}

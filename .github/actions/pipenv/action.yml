@@ -22,5 +22,7 @@ runs:
       id: pipenv
       shell: bash
       run: |
-        pipenv install --deploy --dev --python ${{ inputs.python-version }}
+        pipenv install --deploy --dev --python ${INPUTS_PYTHON_VERSION}
         echo "pipenv-root=$(pwd)" >> $GITHUB_OUTPUT
+      env:
+        INPUTS_PYTHON_VERSION: ${{ inputs.python-version }}

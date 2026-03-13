@@ -87,8 +87,10 @@ runs:
         RANCHER2_URL: ${{ inputs.url }}
     - shell: bash
       run: |
-        KUBECONTEXT="${{ inputs.context }}"
+        KUBECONTEXT="${INPUTS_CONTEXT}"
         if [[ -n "$KUBECONTEXT" ]]
         then
-          mkdir -p $HOME/.kube && rancher cluster kubeconfig ${{ inputs.context }} > $HOME/.kube/config
+          mkdir -p $HOME/.kube && rancher cluster kubeconfig ${INPUTS_CONTEXT} > $HOME/.kube/config
         fi
+      env:
+        INPUTS_CONTEXT: ${{ inputs.context }}

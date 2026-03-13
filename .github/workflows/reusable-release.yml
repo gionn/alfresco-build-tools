@@ -43,6 +43,7 @@ jobs:
               fetch-depth: 0
               ref: ${{ inputs.target_branch }}
               token: ${{ secrets.BOT_GITHUB_TOKEN }}
+              persist-credentials: false
 
           - name: Get release type from PR label or input
             id: set-release-level
@@ -93,7 +94,7 @@ jobs:
               fi
 
               # Bump version based on release level
-              case "${{ steps.set-release-level.outputs.release-level }}" in
+              case "${STEPS_SET_RELEASE_LEVEL_OUTPUTS_RELEASE_LEVEL}" in
                 major)
                   MAJOR=$((MAJOR + 1))
                   MINOR=0
@@ -112,14 +113,17 @@ jobs:
               echo "::info::Bumping version from $LATEST_TAG to $NEW_VERSION"
               echo "new-version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
               echo "current-version=$LATEST_TAG" >> "$GITHUB_OUTPUT"
+            env:
+              STEPS_SET_RELEASE_LEVEL_OUTPUTS_RELEASE_LEVEL: ${{ steps.set-release-level.outputs.release-level }}
 
           - name: Run optional release command
             if: steps.set-release-level.outputs.release-level != '' && inputs.release_command != ''
             env:
               RELEASE_VERSION: ${{ steps.bump-semver.outputs.new-version }}
               CURRENT_VERSION: ${{ steps.bump-semver.outputs.current-version }}
+              INPUTS_RELEASE_COMMAND: ${{ inputs.release_command }}
             run: |
-              ${{ inputs.release_command }}
+              ${INPUTS_RELEASE_COMMAND}
 
           - name: Commit back changes from release script
             uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9 # v7.1.0
@@ -134,4 +138,5 @@ jobs:
             if: steps.set-release-level.outputs.release-level != ''
             env:
               GH_TOKEN: ${{ secrets.BOT_GITHUB_TOKEN }}
-            run: gh release create "${{ steps.bump-semver.outputs.new-version }}" --generate-notes -t "${{ steps.bump-semver.outputs.new-version }}"
+              STEPS_BUMP_SEMVER_OUTPUTS_NEW_VERSION: ${{ steps.bump-semver.outputs.new-version }}
+            run: gh release create "${STEPS_BUMP_SEMVER_OUTPUTS_NEW_VERSION}" --generate-notes -t "${STEPS_BUMP_SEMVER_OUTPUTS_NEW_VERSION}"

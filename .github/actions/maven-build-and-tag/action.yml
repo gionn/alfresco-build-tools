@@ -108,6 +108,8 @@ runs:
   using: composite
   steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
 
     - uses: Alfresco/alfresco-build-tools/.github/actions/maven-configure@v15.9.1
       id: maven-configure
@@ -187,16 +189,23 @@ runs:
     - name: Set SONAR_SCANNER_OPTS
       if: inputs.sonar-token != '' && env.SKIP_TESTS != 'true' && github.event.pull_request.draft == false
       shell: bash
-      run: echo "SONAR_SCANNER_OPTS=sonar:sonar -Dsonar.host.url=${{ inputs.sonar-host-url }} -Dsonar.organization=${{ inputs.sonar-organization }} -Dsonar.projectKey=${{ inputs.project-key }} -Dsonar.coverage.jacoco.xmlReportPaths=${{ inputs.aggregate-report-path }}" >> $GITHUB_ENV
+      run: echo "SONAR_SCANNER_OPTS=sonar:sonar -Dsonar.host.url=${INPUTS_SONAR_HOST_URL} -Dsonar.organization=${INPUTS_SONAR_ORGANIZATION} -Dsonar.projectKey=${INPUTS_PROJECT_KEY} -Dsonar.coverage.jacoco.xmlReportPaths=${INPUTS_AGGREGATE_REPORT_PATH}" >> $GITHUB_ENV
+      env:
+        INPUTS_SONAR_HOST_URL: ${{ inputs.sonar-host-url }}
+        INPUTS_SONAR_ORGANIZATION: ${{ inputs.sonar-organization }}
+        INPUTS_PROJECT_KEY: ${{ inputs.project-key }}
+        INPUTS_AGGREGATE_REPORT_PATH: ${{ inputs.aggregate-report-path }}
 
     - name: Build and Test with Maven (and maybe Deploy)
       shell: bash
-      run: mvn ${{ steps.define_maven_command.outputs.command }} ${{ env.MAVEN_CLI_OPTS }} ${{ inputs.extra-maven-opts }} ${{ env.SONAR_SCANNER_OPTS }}
+      run: mvn ${STEPS_DEFINE_MAVEN_COMMAND_OUTPUTS_COMMAND} ${MAVEN_CLI_OPTS} ${INPUTS_EXTRA_MAVEN_OPTS} ${SONAR_SCANNER_OPTS}
       env:
         MAVEN_CLI_OPTS: ${{ steps.maven-configure.outputs.maven-options }} -Dlogging.root.level=off -Dspring.main.banner-mode=off -Ddocker.skip
         MAVEN_USERNAME: ${{ inputs.maven-username }}
         MAVEN_PASSWORD: ${{ inputs.maven-password }}
         SONAR_TOKEN: ${{ inputs.sonar-token }}
+        STEPS_DEFINE_MAVEN_COMMAND_OUTPUTS_COMMAND: ${{ steps.define_maven_command.outputs.command }}
+        INPUTS_EXTRA_MAVEN_OPTS: ${{ inputs.extra-maven-opts }}
 
     - name: Remove running docker containers
       if: inputs.reuse-testcontainers == 'true'

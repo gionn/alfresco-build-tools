@@ -11,4 +11,6 @@ runs:
     - name: Check helm-docs version
       shell: bash
       run: |
-        [ "$(helm-docs -v | awk '{print $NF}')" = "${{ inputs.expected-version }}" ]
+        [ "$(helm-docs -v | awk '{print $NF}')" = "${INPUTS_EXPECTED_VERSION}" ]
+      env:
+        INPUTS_EXPECTED_VERSION: ${{ inputs.expected-version }}

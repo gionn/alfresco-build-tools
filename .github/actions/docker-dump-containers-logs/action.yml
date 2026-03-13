@@ -20,11 +20,13 @@ runs:
         # Create archive with log files
         tar -zcf logs.tar.gz *.log
         # Specify output artefact name
-        if [ "${{ inputs.output-archive-name }}" = "containers-logs.tar.gz" ]; then
+        if [ "${INPUTS_OUTPUT_ARCHIVE_NAME}" = "containers-logs.tar.gz" ]; then
           echo "artefactName=containers-logs-${{ github.job }}-${{ github.run_attempt }}-$(date +%Y%m%d%H%M%S).tar.gz" >> $GITHUB_ENV
         else
-          echo "artefactName=${{ inputs.output-archive-name }}" >> $GITHUB_ENV
+          echo "artefactName=${INPUTS_OUTPUT_ARCHIVE_NAME}" >> $GITHUB_ENV
         fi
+      env:
+        INPUTS_OUTPUT_ARCHIVE_NAME: ${{ inputs.output-archive-name }}
     - name: "Upload archive containing all *.log files"
       uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:

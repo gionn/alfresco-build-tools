@@ -31,28 +31,37 @@ runs:
     - name: Watch resources
       shell: bash
       run: |
-        kubectl wait --for=create namespace/${{ inputs.namespace }} --timeout=5s > /dev/null
-        echo "Namespace ${{ inputs.namespace }} is created."
+        kubectl wait --for=create namespace/${INPUTS_NAMESPACE} --timeout=5s > /dev/null
+        echo "Namespace ${INPUTS_NAMESPACE} is created."
 
         kubectl wait \
-          --for=create ${{ inputs.wait-resource }} \
-          -n ${{ inputs.namespace }} \
+          --for=create ${INPUTS_WAIT_RESOURCE} \
+          -n ${INPUTS_NAMESPACE} \
           --timeout=5s \
           --all=true > /dev/null
-        echo "All resources ${{ inputs.wait-resource }} are created in namespace ${{ inputs.namespace }}."
+        echo "All resources ${INPUTS_WAIT_RESOURCE} are created in namespace ${INPUTS_NAMESPACE}."
 
         echo "Starting to watch resources..."
-        kubectl get ${{ inputs.wait-resource }} --watch -n ${{ inputs.namespace }} &
+        kubectl get ${INPUTS_WAIT_RESOURCE} --watch -n ${INPUTS_NAMESPACE} &
         kubectl wait \
-          --for=${{ inputs.wait-for-what }}=${{ inputs.wait-condition }} \
-          -n ${{ inputs.namespace }} \
-          --timeout=${{ inputs.wait-timeout }} \
+          --for=${INPUTS_WAIT_FOR_WHAT}=${INPUTS_WAIT_CONDITION} \
+          -n ${INPUTS_NAMESPACE} \
+          --timeout=${INPUTS_WAIT_TIMEOUT} \
           --all=true \
-          ${{ inputs.wait-resource }}
+          ${INPUTS_WAIT_RESOURCE}
+      env:
+        INPUTS_NAMESPACE: ${{ inputs.namespace }}
+        INPUTS_WAIT_RESOURCE: ${{ inputs.wait-resource }}
+        INPUTS_WAIT_FOR_WHAT: ${{ inputs.wait-for-what }}
+        INPUTS_WAIT_CONDITION: ${{ inputs.wait-condition }}
+        INPUTS_WAIT_TIMEOUT: ${{ inputs.wait-timeout }}
 
     - name: Spit resources status after wait
       shell: bash
       if: always()
       run: |
-        kubectl get ${{ inputs.wait-resource }} -n ${{ inputs.namespace }}
-        kubectl describe ${{ inputs.wait-resource }} -n ${{ inputs.namespace }}
+        kubectl get ${INPUTS_WAIT_RESOURCE} -n ${INPUTS_NAMESPACE}
+        kubectl describe ${INPUTS_WAIT_RESOURCE} -n ${INPUTS_NAMESPACE}
+      env:
+        INPUTS_WAIT_RESOURCE: ${{ inputs.wait-resource }}
+        INPUTS_NAMESPACE: ${{ inputs.namespace }}

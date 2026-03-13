@@ -68,19 +68,30 @@ runs:
       env:
         MAVEN_USERNAME: ${{ inputs.maven-username }}
         MAVEN_PASSWORD: ${{ inputs.maven-password }}
+        INPUTS_FILES: ${{ inputs.files }}
+        INPUTS_CLASSIFIERS: ${{ inputs.classifiers }}
+        INPUTS_TYPES: ${{ inputs.types }}
+        INPUTS_GROUP_ID: ${{ inputs.group-id }}
+        INPUTS_ARTIFACT_ID: ${{ inputs.artifact-id }}
+        INPUTS_REPOSITORY_URL: ${{ inputs.repository-url }}
+        INPUTS_REPOSITORY_ID: ${{ inputs.repository-id }}
+        INPUTS_VERSION: ${{ inputs.version }}
+        INPUTS_FILE: ${{ inputs.file }}
+        INPUTS_CLASSIFIER: ${{ inputs.classifier }}
+        INPUTS_GENERATE_POM: ${{ inputs.generate-pom }}
       run: |
         OPTIONAL_ARGS=""
-        if [[ -n "${{ inputs.files }}" && -n "${{ inputs.classifiers }}" && -n "${{ inputs.types }}" ]]; then
-          OPTIONAL_ARGS='-Dfiles=${{ inputs.files }} -Dclassifiers=${{ inputs.classifiers }} -Dtypes=${{ inputs.types }}'
+        if [[ -n "${INPUTS_FILES}" && -n "${INPUTS_CLASSIFIERS}" && -n "${INPUTS_TYPES}" ]]; then
+          OPTIONAL_ARGS='-Dfiles=${INPUTS_FILES} -Dclassifiers=${INPUTS_CLASSIFIERS} -Dtypes=${INPUTS_TYPES}'
         fi
         mvn deploy:deploy-file -B \
-          -DgroupId=${{ inputs.group-id }} \
-          -DartifactId=${{ inputs.artifact-id }} \
-          -Durl=${{ inputs.repository-url }} \
-          -DrepositoryId=${{ inputs.repository-id }} \
-          -Dversion=${{ inputs.version }} \
-          -Dfile=${{ inputs.file }} \
-          -Dclassifier=${{ inputs.classifier }} \
-          -DgeneratePom=${{ inputs.generate-pom }} \
+          -DgroupId=${INPUTS_GROUP_ID} \
+          -DartifactId=${INPUTS_ARTIFACT_ID} \
+          -Durl=${INPUTS_REPOSITORY_URL} \
+          -DrepositoryId=${INPUTS_REPOSITORY_ID} \
+          -Dversion=${INPUTS_VERSION} \
+          -Dfile=${INPUTS_FILE} \
+          -Dclassifier=${INPUTS_CLASSIFIER} \
+          -DgeneratePom=${INPUTS_GENERATE_POM} \
           $OPTIONAL_ARGS \
           -DretryFailedDeploymentCount=5

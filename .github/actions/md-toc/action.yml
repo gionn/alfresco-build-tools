@@ -40,20 +40,25 @@ runs:
       with:
         node-version: ${{ inputs.node_version }}
     - name: Install Markdown ToC node package
-      run: npm install -g markdown-toc@${{ inputs.md_toc_version }}
+      run: npm install -g markdown-toc@${INPUTS_MD_TOC_VERSION}
       shell: bash
+      env:
+        INPUTS_MD_TOC_VERSION: ${{ inputs.md_toc_version }}
     - name: Generate Table of Contents
       env:
         MDTOC_IARG: ${{ inputs.dry_run == 'false' && '-i' || '' }}
         MDTOC_BARG: ${{ inputs.bullets != '' && format('--bullets {0}', inputs.bullets) || '' }}
+        INPUTS_MD_SRC: ${{ inputs.md_src }}
+        INPUTS_DEPTH: ${{ inputs.depth }}
+        INPUTS_APPEND: ${{ inputs.append }}
       run: |
-        export MDTOC_ARGS="${{ env.MDTOC_IARG }} ${{ env.MDTOC_BARG }}"
-        for f in ${{ inputs.md_src }}; do
+        export MDTOC_ARGS="${MDTOC_IARG} ${MDTOC_BARG}"
+        for f in ${INPUTS_MD_SRC}; do
           if [ -f $f ]; then
             markdown-toc $MDTOC_ARGS \
-              --maxdepth ${{ inputs.depth }} \
-              --append "${{ inputs.append }}" $f && \
-            echo "Table of Contents successfully generated in ${{ inputs.md_src }}"
+              --maxdepth ${INPUTS_DEPTH} \
+              --append "${INPUTS_APPEND}" $f && \
+            echo "Table of Contents successfully generated in ${INPUTS_MD_SRC}"
           else
             echo "File $f not found.. Skipping!"
           fi

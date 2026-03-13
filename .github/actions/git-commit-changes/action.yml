@@ -27,19 +27,25 @@ runs:
     - name: Commit stagged changes
       shell: bash
       run: |
-        REPO_DIR="${{inputs.repository-directory}}"
+        REPO_DIR="${INPUTS_REPOSITORY_DIRECTORY}"
         if [ -n "$REPO_DIR" ]
         then
           cd $REPO_DIR
         fi
-        git config --global user.name ${{ inputs.username }}
-        git config --global user.email ${{ inputs.username }}@users.noreply.github.com
-        git add ${{ inputs.add-options }}
+        git config --global user.name ${INPUTS_USERNAME}
+        git config --global user.email ${INPUTS_USERNAME}@users.noreply.github.com
+        git add ${INPUTS_ADD_OPTIONS}
         git status
         git --no-pager diff --cached
         if ${{ inputs.skip-if-no-changes == 'true' }} ;
         then
-          git diff-index --quiet HEAD || git commit -m "${{ inputs.commit-message }}" ${{ inputs.commit-options }}
+          git diff-index --quiet HEAD || git commit -m "${INPUTS_COMMIT_MESSAGE}" ${INPUTS_COMMIT_OPTIONS}
         else
-          git commit -m "${{ inputs.commit-message }}" ${{ inputs.commit-options }}
+          git commit -m "${INPUTS_COMMIT_MESSAGE}" ${INPUTS_COMMIT_OPTIONS}
         fi
+      env:
+        INPUTS_REPOSITORY_DIRECTORY: ${{inputs.repository-directory}}
+        INPUTS_USERNAME: ${{ inputs.username }}
+        INPUTS_ADD_OPTIONS: ${{ inputs.add-options }}
+        INPUTS_COMMIT_MESSAGE: ${{ inputs.commit-message }}
+        INPUTS_COMMIT_OPTIONS: ${{ inputs.commit-options }}

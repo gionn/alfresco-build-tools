@@ -57,8 +57,9 @@ runs:
         SOURCE_REPOSITORY: ${{ inputs.source-repository }}
         GROUP: ${{ inputs.group }}
         VERSION: ${{ inputs.version }}
+        STEPS_COUNT_ARTIFACTS_OUTPUTS_COUNT: ${{ steps.count-artifacts.outputs.count }}
       run: |
-        count="${{ steps.count-artifacts.outputs.count }}"
+        count="${STEPS_COUNT_ARTIFACTS_OUTPUTS_COUNT}"
         if [ $count -eq 0 ]; then
           echo "No artifacts found in repository ${SOURCE_REPOSITORY} for group ${GROUP} and version ${VERSION}"
         else

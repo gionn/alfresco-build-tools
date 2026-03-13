@@ -42,14 +42,16 @@ runs:
         VERSION: ${{ inputs.version }}
         URL_TEMPLATE: ${{ inputs.url_template }}
         BINARY_NAME: ${{ inputs.binary_name }}
+        INPUTS_X86_64_ARCH: ${{ inputs.x86_64_arch }}
+        INPUTS_AARCH64_ARCH: ${{ inputs.aarch64_arch }}
       working-directory: ${{ runner.temp }}
       run: |
         NAME=${BINARY_NAME:-${REPO##*\/}}
         OS=$(uname | tr '[:upper:]' '[:lower:]')
         ARCH_RAW=$(uname -m)
         case $ARCH_RAW in
-          x86_64) ARCH=${ARCH:-${{ inputs.x86_64_arch }}} ;;
-          aarch64) ARCH=${ARCH:-${{ inputs.aarch64_arch }}} ;;
+          x86_64) ARCH=${ARCH:-${INPUTS_X86_64_ARCH}} ;;
+          aarch64) ARCH=${ARCH:-${INPUTS_AARCH64_ARCH}} ;;
           *) ARCH=${ARCH:-$ARCH_RAW} ;;
         esac
 
@@ -115,6 +117,7 @@ runs:
       env:
         BINARY_ARCHIVE: ${{ steps.download.outputs.binary_archive }}
         BINARY_NAME: ${{ steps.download.outputs.binary_name }}
+        INPUTS_TEST_ARGS: ${{ inputs.test_args }}
       working-directory: ${{ runner.temp }}
       run: |
         if [[ "$BINARY_ARCHIVE" == *.zip ]]; then
@@ -127,4 +130,4 @@ runs:
         fi
 
         sudo mv "$BINARY_NAME" /usr/local/bin/"$BINARY_NAME"
-        "$BINARY_NAME" ${{ inputs.test_args }}
+        "$BINARY_NAME" ${INPUTS_TEST_ARGS}

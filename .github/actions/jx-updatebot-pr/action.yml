@@ -83,25 +83,27 @@ runs:
   steps:
     - name: Setup jx-updatebot
       run: |
-        curl -L https://github.com/jenkins-x-plugins/jx-updatebot/releases/download/v${{ inputs.jx-updatebot-release }}/jx-updatebot-linux-amd64.tar.gz | tar xzv
+        curl -L https://github.com/jenkins-x-plugins/jx-updatebot/releases/download/v${INPUTS_JX_UPDATEBOT_RELEASE}/jx-updatebot-linux-amd64.tar.gz | tar xzv
         sudo mv jx-updatebot /usr/local/bin
       shell: bash
       working-directory: /tmp
+      env:
+        INPUTS_JX_UPDATEBOT_RELEASE: ${{ inputs.jx-updatebot-release }}
     - name: Run jx-updatebot
       run: >
         jx-updatebot pr
-        --auto-merge=${{ inputs.auto-merge }}
-        --version='${{ inputs.version }}'
-        --pull-request-title='${{ inputs.pull-request-title }}'
-        --pull-request-body="${{ inputs.pull-request-body }}"
-        --commit-title='${{ inputs.commit-title }}'
-        --commit-message="${{ inputs.commit-message }}"
-        --labels='${{ inputs.labels }}'
-        --base-branch-name='${{ inputs.base-branch-name }}'
-        --config-file='${{ inputs.config-file }}'
-        --version-file='${{ inputs.version-file }}'
-        --dir='${{ inputs.dir }}'
-        ${{ inputs.flags }}
+        --auto-merge=${INPUTS_AUTO_MERGE}
+        --version='${INPUTS_VERSION}'
+        --pull-request-title='${INPUTS_PULL_REQUEST_TITLE}'
+        --pull-request-body="${INPUTS_PULL_REQUEST_BODY}"
+        --commit-title='${INPUTS_COMMIT_TITLE}'
+        --commit-message="${INPUTS_COMMIT_MESSAGE}"
+        --labels='${INPUTS_LABELS}'
+        --base-branch-name='${INPUTS_BASE_BRANCH_NAME}'
+        --config-file='${INPUTS_CONFIG_FILE}'
+        --version-file='${INPUTS_VERSION_FILE}'
+        --dir='${INPUTS_DIR}'
+        ${INPUTS_FLAGS}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       env:
@@ -109,3 +111,15 @@ runs:
         GIT_TOKEN: ${{ inputs.git-token }}
         GIT_AUTHOR_NAME: ${{ inputs.git-author-name }}
         GIT_AUTHOR_EMAIL: ${{ inputs.git-author-email }}
+        INPUTS_AUTO_MERGE: ${{ inputs.auto-merge }}
+        INPUTS_VERSION: ${{ inputs.version }}
+        INPUTS_PULL_REQUEST_TITLE: ${{ inputs.pull-request-title }}
+        INPUTS_PULL_REQUEST_BODY: ${{ inputs.pull-request-body }}
+        INPUTS_COMMIT_TITLE: ${{ inputs.commit-title }}
+        INPUTS_COMMIT_MESSAGE: ${{ inputs.commit-message }}
+        INPUTS_LABELS: ${{ inputs.labels }}
+        INPUTS_BASE_BRANCH_NAME: ${{ inputs.base-branch-name }}
+        INPUTS_CONFIG_FILE: ${{ inputs.config-file }}
+        INPUTS_VERSION_FILE: ${{ inputs.version-file }}
+        INPUTS_DIR: ${{ inputs.dir }}
+        INPUTS_FLAGS: ${{ inputs.flags }}

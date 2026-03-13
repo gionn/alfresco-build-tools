@@ -84,5 +84,6 @@ runs:
       env:
         PR_URL: ${{ github.event.pull_request.html_url }}
         GH_TOKEN: ${{ inputs.github-token }}
+        INPUTS_MERGE_OPTION: ${{ inputs.merge-option }}
       shell: bash
-      run: gh pr merge --auto ${{ inputs.merge-option }} "$PR_URL"
+      run: gh pr merge --auto ${INPUTS_MERGE_OPTION} "$PR_URL"

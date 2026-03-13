@@ -111,6 +111,7 @@ jobs:
         with:
           ref: ${{ github.event_name == 'issue_comment' && format('refs/pull/{0}/merge', github.event.issue.number) || '' }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Retrieve PR or last commit changes (used for auto-detection of terraform root path and/or environment)
         if: inputs.terraform_root_path == '' || inputs.terraform_env == ''
@@ -123,12 +124,12 @@ jobs:
         if: inputs.terraform_root_path == ''
         id: detect-path
         run: |
-          if [ "${{ steps.set-outputs.outputs.is_promotion_pr_related }}" == "true" ]; then
+          if [ "${STEPS_SET_OUTPUTS_OUTPUTS_IS_PROMOTION_PR_RELATED}" == "true" ]; then
             PROMOTION_PR_FILTER=$(echo "${{ steps.get-branch-name.outputs.base-branch-name || steps.get-branch-name.outputs.branch-name }}" | cut -d'-' -f1)
             echo "This is a promotion PR so restricting changed files to folders matching ${PROMOTION_PR_FILTER}"
           fi
 
-          first_changed_folder=$(echo "${{ steps.last-changes-diff.outputs.all_changed_files }}" \
+          first_changed_folder=$(echo "${STEPS_LAST_CHANGES_DIFF_OUTPUTS_ALL_CHANGED_FILES}" \
             | grep '/' \
             | cut -d/ -f1 \
             | grep -Ev '^(\..*|test)$' \
@@ -138,6 +139,9 @@ jobs:
 
           echo "First changed folder: ${first_changed_folder:-none}"
           echo "terraform_root_path=$first_changed_folder" >> "$GITHUB_OUTPUT"
+        env:
+          STEPS_SET_OUTPUTS_OUTPUTS_IS_PROMOTION_PR_RELATED: ${{ steps.set-outputs.outputs.is_promotion_pr_related }}
+          STEPS_LAST_CHANGES_DIFF_OUTPUTS_ALL_CHANGED_FILES: ${{ steps.last-changes-diff.outputs.all_changed_files }}
 
       - name: Auto-detect terraform environment based on changed files (when running against default branch)
         if: >-
@@ -145,6 +149,7 @@ jobs:
           steps.set-outputs.outputs.is_promotion_pr_related == 'false'
         env:
           TERRAFORM_ROOT_PATH: ${{ steps.detect-path.outputs.terraform_root_path || inputs.terraform_root_path }}
+          STEPS_LAST_CHANGES_DIFF_OUTPUTS_ALL_CHANGED_FILES: ${{ steps.last-changes-diff.outputs.all_changed_files }}
         id: detect-tfvars
         run: |
           if [ -z "${TERRAFORM_ROOT_PATH}" ]; then
@@ -153,9 +158,9 @@ jobs:
             exit 0
           fi
 
-          first_changed_tfvars=$(echo "${{ steps.last-changes-diff.outputs.all_changed_files }}" \
+          first_changed_tfvars=$(echo "${STEPS_LAST_CHANGES_DIFF_OUTPUTS_ALL_CHANGED_FILES}" \
             | grep -v 'common.tfvars' \
-            | grep -E '^${{ env.TERRAFORM_ROOT_PATH }}/.*\.tfvars$' \
+            | grep -E '^${TERRAFORM_ROOT_PATH}/.*\.tfvars$' \
             | sort -u \
             | head -1 \
             | xargs -r basename -s .tfvars)
@@ -175,16 +180,18 @@ jobs:
         id: basic_vars
         env:
           GH_TOKEN: ${{ github.token }}
+          INPUTS_TERRAFORM_ENV: ${{ inputs.terraform_env }}
+          STEPS_DETECT_TFVARS_OUTPUTS_TERRAFORM_TFVARS_FILE: ${{ steps.detect-tfvars.outputs.terraform_tfvars_file }}
         run: |
-          if [ -n "${{ inputs.terraform_env }}" ]; then
-            echo "Using environment from input: ${{ inputs.terraform_env }}"
-            echo "environment_name=${{ inputs.terraform_env }}" >> "$GITHUB_OUTPUT"
+          if [ -n "${INPUTS_TERRAFORM_ENV}" ]; then
+            echo "Using environment from input: ${INPUTS_TERRAFORM_ENV}"
+            echo "environment_name=${INPUTS_TERRAFORM_ENV}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          if [ -n "${{ steps.detect-tfvars.outputs.terraform_tfvars_file }}" ]; then
-            echo "Using environment from changed tfvars file: ${{ steps.detect-tfvars.outputs.terraform_tfvars_file }}"
-            echo "environment_name=${{ steps.detect-tfvars.outputs.terraform_tfvars_file }}" >> "$GITHUB_OUTPUT"
+          if [ -n "${STEPS_DETECT_TFVARS_OUTPUTS_TERRAFORM_TFVARS_FILE}" ]; then
+            echo "Using environment from changed tfvars file: ${STEPS_DETECT_TFVARS_OUTPUTS_TERRAFORM_TFVARS_FILE}"
+            echo "environment_name=${STEPS_DETECT_TFVARS_OUTPUTS_TERRAFORM_TFVARS_FILE}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -212,6 +219,7 @@ jobs:
           COMMENT_CONTAINS_TERRAFORM_PLAN: ${{ contains(github.event.comment.body, 'terraform plan') || false }}
           COMMENT_CONTAINS_TERRAFORM_APPLY: ${{ contains(github.event.comment.body, 'terraform apply') || false }}
           TERRAFORM_ROOT_PATH: ${{ (steps.detect-path.outputs.terraform_root_path || inputs.terraform_root_path) }}
+          STEPS_BASIC_VARS_OUTPUTS_ENVIRONMENT_NAME: ${{ steps.basic_vars.outputs.environment_name }}
         run: |
           if [ -z "$TERRAFORM_ROOT_PATH" ]; then
             echo "### Not running Terraform 🚀" >> "$GITHUB_STEP_SUMMARY"
@@ -220,10 +228,10 @@ jobs:
           fi
 
           echo "### Running Terraform 🚀" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Environment: **${{ steps.basic_vars.outputs.environment_name }}**" >> "$GITHUB_STEP_SUMMARY"
-          if [ "${{ env.COMMENT_CONTAINS_TERRAFORM_PLAN }}" == "true" ]; then
+          echo "- Environment: **${STEPS_BASIC_VARS_OUTPUTS_ENVIRONMENT_NAME}**" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${COMMENT_CONTAINS_TERRAFORM_PLAN}" == "true" ]; then
             echo "- Operation: **plan**" >> "$GITHUB_STEP_SUMMARY"
-          elif [ "${{ env.COMMENT_CONTAINS_TERRAFORM_APPLY }}" == "true" ]; then
+          elif [ "${COMMENT_CONTAINS_TERRAFORM_APPLY}" == "true" ]; then
             echo "- Operation: **apply**" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "- Operation: **${{ inputs.terraform_operation || ((github.event_name == 'pull_request' || github.event_name == 'pull_request_review') && 'plan' || 'apply') }}**" >> "$GITHUB_STEP_SUMMARY"
@@ -293,16 +301,18 @@ jobs:
       - name: Check environment requirements
         env:
           ENVIRONMENT_NAME: ${{ needs.compute_basic_vars.outputs.environment_name }}
+          VARS_RESOURCE_NAME: ${{ vars.RESOURCE_NAME }}
+          VARS_TERRAFORM_STATE_BUCKET: ${{ vars.TERRAFORM_STATE_BUCKET }}
         run: |
           if [ -z "$ENVIRONMENT_NAME" ]; then
             echo "Environment name should have been determined at this point, but it's empty. BUG?"
             exit 1
           fi
-          if [ -z "${{ vars.RESOURCE_NAME }}" ]; then
+          if [ -z "${VARS_RESOURCE_NAME}" ]; then
             echo "RESOURCE_NAME must be set in the vars context of $ENVIRONMENT_NAME to provide a unique identifier"
             exit 1
           fi
-          if [ -z "${{ vars.TERRAFORM_STATE_BUCKET }}" ]; then
+          if [ -z "${VARS_TERRAFORM_STATE_BUCKET}" ]; then
             echo "TERRAFORM_STATE_BUCKET must be set in the vars context of $ENVIRONMENT_NAME to specify the S3 bucket used for terraform state storage"
             exit 1
           fi
@@ -311,6 +321,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ github.event_name == 'issue_comment' && env.PR_CHECKOUT_REF || '' }}
+          persist-credentials: false
 
       - name: Install OIDC Client from Core Package
         if: ${{ inputs.create_oidc_token_file }}
@@ -328,7 +339,9 @@ jobs:
 
       - name: Save token to file
         if: ${{ inputs.create_oidc_token_file }}
-        run: echo "${{ steps.idtoken.outputs.id_token }}" >> idtoken.json
+        run: echo "${STEPS_IDTOKEN_OUTPUTS_ID_TOKEN}" >> idtoken.json
+        env:
+          STEPS_IDTOKEN_OUTPUTS_ID_TOKEN: ${{ steps.idtoken.outputs.id_token }}
 
       - name: Assume AWS Role when AWS_ROLE_ARN is set
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0

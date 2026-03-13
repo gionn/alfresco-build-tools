@@ -29,13 +29,15 @@ runs:
       shell: bash
       working-directory: ${{ steps.artifactdir.outputs.ARTIFACTS_DIR }}
       run: |
-        kubectl config set-context --current --namespace=${{ inputs.namespace }}
+        kubectl config set-context --current --namespace=${INPUTS_NAMESPACE}
         for type in deployment.apps statefulset.apps job.batch; do
           mkdir -p "${type}"
           for i in $(kubectl get "$type" -o name); do \
             kubectl logs "$i" --all-containers=true > ${i}.log
           done
         done
+      env:
+        INPUTS_NAMESPACE: ${{ inputs.namespace }}
     - name: upload kubernetes logs as artifact
       uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:

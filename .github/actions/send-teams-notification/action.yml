@@ -44,6 +44,8 @@ runs:
   steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       if: inputs.skip_checkout == 'false'
+      with:
+        persist-credentials: false
 
     - name: Compute workflow status
       id: compute-workflow-status

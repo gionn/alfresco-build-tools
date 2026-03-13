@@ -11,5 +11,8 @@ runs:
   using: "composite"
   steps:
     - name: Configure git to use bot credentials
-      run: git config --global url."https://${{ inputs.username }}:${{ inputs.pat }}@github.com".insteadOf "https://github.com"
+      run: git config --global url."https://${INPUTS_USERNAME}:${INPUTS_PAT}@github.com".insteadOf "https://github.com"
       shell: bash
+      env:
+        INPUTS_USERNAME: ${{ inputs.username }}
+        INPUTS_PAT: ${{ inputs.pat }}

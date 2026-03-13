@@ -32,6 +32,7 @@ runs:
         REF_TO_CHECKOUT: ${{ inputs.auto-commit == 'true' && github.head_ref || '' }}
       with:
         ref: ${{ env.REF_TO_CHECKOUT }}
+        persist-credentials: false
 
     - name: Set up Python ${{ inputs.python-version }}
       uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
@@ -42,9 +43,11 @@ runs:
       shell: bash
       env:
         EXTRA_ARGS: ''
+        INPUTS_PRE_COMMIT_ALL_FILES: ${{ inputs.pre-commit-all-files }}
+        INPUTS_PRE_COMMIT_ARGS: ${{ inputs.pre-commit-args }}
       run: |
-        ${{ inputs.pre-commit-all-files }} && EXTRA_ARGS='--all-files'
-        EXTRA_ARGS="${EXTRA_ARGS} ${{ inputs.pre-commit-args }}"
+        ${INPUTS_PRE_COMMIT_ALL_FILES} && EXTRA_ARGS='--all-files'
+        EXTRA_ARGS="${EXTRA_ARGS} ${INPUTS_PRE_COMMIT_ARGS}"
         echo EXTRA_ARGS="${EXTRA_ARGS}" >> $GITHUB_ENV
 
     - name: Run pre-commit

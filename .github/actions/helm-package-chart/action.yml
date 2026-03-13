@@ -28,13 +28,14 @@ runs:
       shell: bash
       env:
         CHART_REPO_DIR: ${{inputs.chart-repository-dir }}
+        INPUTS_CHART_DIR: ${{ inputs.chart-dir }}
       run: |
         if [ -n "$CHART_REPO_DIR" ]
         then
           cd $CHART_REPO_DIR
         fi
 
-        helm package --dependency-update --destination $RANDOM_PATH ${{ inputs.chart-dir }}
+        helm package --dependency-update --destination $RANDOM_PATH ${INPUTS_CHART_DIR}
 
         PACKAGE_FILE=$(ls $RANDOM_PATH | grep "**/*\.tgz")
         PACKAGE_FILE_PATH="$(pwd)/$RANDOM_PATH/$PACKAGE_FILE"

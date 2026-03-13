@@ -42,12 +42,15 @@ runs:
       name: Resolve version
       shell: bash
       run: |
-        if [ ${{ inputs.version }} != '' ]
+        if [ ${INPUTS_VERSION} != '' ]
         then
-          echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          echo "version=${INPUTS_VERSION}" >> $GITHUB_OUTPUT
         else
-          echo "version=${{ steps.next-prerelease-resolver.outputs.next-prerelease }}" >> $GITHUB_OUTPUT
+          echo "version=${STEPS_NEXT_PRERELEASE_RESOLVER_OUTPUTS_NEXT_PRERELEASE}" >> $GITHUB_OUTPUT
         fi
+      env:
+        INPUTS_VERSION: ${{ inputs.version }}
+        STEPS_NEXT_PRERELEASE_RESOLVER_OUTPUTS_NEXT_PRERELEASE: ${{ steps.next-prerelease-resolver.outputs.next-prerelease }}
 
     - name: Update pom files to the new version
       uses: Alfresco/alfresco-build-tools/.github/actions/maven-update-pom-version@v15.9.1

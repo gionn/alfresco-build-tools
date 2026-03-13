@@ -40,13 +40,22 @@ runs:
     - name: ${{ inputs.action }} cluster
       shell: bash
       run: |
-        if [ "${{ inputs.action }}" = "register" ]; then
-          export AWS_ACCESS_KEY_ID=${{ inputs.aws-access-key }}
-          export AWS_SECRET_ACCESS_KEY=${{ inputs.aws-secret-key }}
-          aws eks --region ${{ inputs.aws-region }} update-kubeconfig --name ${{ inputs.cluster-name }}
+        if [ "${INPUTS_ACTION}" = "register" ]; then
+          export AWS_ACCESS_KEY_ID=${INPUTS_AWS_ACCESS_KEY}
+          export AWS_SECRET_ACCESS_KEY=${INPUTS_AWS_SECRET_KEY}
+          aws eks --region ${INPUTS_AWS_REGION} update-kubeconfig --name ${INPUTS_CLUSTER_NAME}
         fi
-        export RANCHER2_URL=${{ inputs.rancher-url }}
-        export RANCHER2_ACCESS_KEY=${{ inputs.rancher-access-key }}
-        export RANCHER2_SECRET_KEY=${{ inputs.rancher-secret-key }}
-        export CLUSTER_NAME=${{ inputs.cluster-name }}
-        python3 ${{ github.action_path }}/rancher_api.py ${{ inputs.action }}
+        export RANCHER2_URL=${INPUTS_RANCHER_URL}
+        export RANCHER2_ACCESS_KEY=${INPUTS_RANCHER_ACCESS_KEY}
+        export RANCHER2_SECRET_KEY=${INPUTS_RANCHER_SECRET_KEY}
+        export CLUSTER_NAME=${INPUTS_CLUSTER_NAME}
+        python3 ${{ github.action_path }}/rancher_api.py ${INPUTS_ACTION}
+      env:
+        INPUTS_ACTION: ${{ inputs.action }}
+        INPUTS_AWS_ACCESS_KEY: ${{ inputs.aws-access-key }}
+        INPUTS_AWS_SECRET_KEY: ${{ inputs.aws-secret-key }}
+        INPUTS_AWS_REGION: ${{ inputs.aws-region }}
+        INPUTS_CLUSTER_NAME: ${{ inputs.cluster-name }}
+        INPUTS_RANCHER_URL: ${{ inputs.rancher-url }}
+        INPUTS_RANCHER_ACCESS_KEY: ${{ inputs.rancher-access-key }}
+        INPUTS_RANCHER_SECRET_KEY: ${{ inputs.rancher-secret-key }}

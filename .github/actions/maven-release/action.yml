@@ -74,6 +74,7 @@ runs:
         ref: ${{ inputs.base-ref }}
         path: '${{ env.REPO_DIR }}'
         token: ${{ inputs.github-token }}
+        persist-credentials: false
 
     - uses: Alfresco/alfresco-build-tools/.github/actions/git-check-existing-tag@v15.9.1
       id: check-tag

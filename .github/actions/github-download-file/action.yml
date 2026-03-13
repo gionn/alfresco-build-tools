@@ -20,6 +20,9 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
+        INPUTS_REPOSITORY: ${{ inputs.repository }}
+        INPUTS_FILE_PATH: ${{ inputs.file-path }}
+        INPUTS_TARGET: ${{ inputs.target }}
       run: |
-        export API_URL=https://api.github.com/repos/${{ inputs.repository }}/contents/${{ inputs.file-path }}
-        gh api $API_URL -H "Accept: application/vnd.github.raw" >> ${{ inputs.target }}
+        export API_URL=https://api.github.com/repos/${INPUTS_REPOSITORY}/contents/${INPUTS_FILE_PATH}
+        gh api $API_URL -H "Accept: application/vnd.github.raw" >> ${INPUTS_TARGET}

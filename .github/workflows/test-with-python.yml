@@ -37,6 +37,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: List changes
         id: changes
@@ -52,8 +53,11 @@ jobs:
 
       - name: Debug
         run: |
-          echo "has_tests=${{ steps.resolve.outputs.has_tests }}"
-          echo '${{ steps.resolve.outputs.matrix_json }}'
+          echo "has_tests=${STEPS_RESOLVE_OUTPUTS_HAS_TESTS}"
+          echo '${STEPS_RESOLVE_OUTPUTS_MATRIX_JSON}'
+        env:
+          STEPS_RESOLVE_OUTPUTS_HAS_TESTS: ${{ steps.resolve.outputs.has_tests }}
+          STEPS_RESOLVE_OUTPUTS_MATRIX_JSON: ${{ steps.resolve.outputs.matrix_json }}
 
   tests:
     name: ${{ matrix.action }}
@@ -69,6 +73,8 @@ jobs:
       matrix: ${{ fromJSON(needs.resolve.outputs.matrix_json) }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
@@ -78,12 +84,14 @@ jobs:
       - name: Install test deps
         run: |
           python -m pip install --upgrade pip
-          if [ -f ".github/actions/${{ matrix.action }}/requirements.txt" ]; then
-            python -m pip install -r .github/actions/${{ matrix.action }}/requirements.txt
+          if [ -f ".github/actions/${MATRIX_ACTION}/requirements.txt" ]; then
+            python -m pip install -r .github/actions/${MATRIX_ACTION}/requirements.txt
           fi
-          if [ -f ".github/tests/python-scripts/${{ matrix.action }}/dev-requirements.txt" ]; then
-            python -m pip install -r .github/tests/python-scripts/${{ matrix.action }}/dev-requirements.txt
+          if [ -f ".github/tests/python-scripts/${MATRIX_ACTION}/dev-requirements.txt" ]; then
+            python -m pip install -r .github/tests/python-scripts/${MATRIX_ACTION}/dev-requirements.txt
           fi
+        env:
+          MATRIX_ACTION: ${{ matrix.action }}
 
       - name: Decide pytest markers from PR labels
         id: decide_markers
@@ -95,10 +103,12 @@ jobs:
           JIRA_URL: ${{ secrets.JIRA_URL }}
           JIRA_USER: ${{ secrets.JIRA_USER }}
           JIRA_TOKEN: ${{ secrets.JIRA_TOKEN }}
+          STEPS_DECIDE_MARKERS_OUTPUTS_MODE: ${{ steps.decide_markers.outputs.mode }}
+          STEPS_DECIDE_MARKERS_OUTPUTS_MARKER: ${{ steps.decide_markers.outputs.marker }}
         run: |
-          echo "Selected test mode: ${{ steps.decide_markers.outputs.mode }}"
-          echo "Selected pytest -m: ${{ steps.decide_markers.outputs.marker }}"
-          python -m pytest -m "${{ steps.decide_markers.outputs.marker }}"
+          echo "Selected test mode: ${STEPS_DECIDE_MARKERS_OUTPUTS_MODE}"
+          echo "Selected pytest -m: ${STEPS_DECIDE_MARKERS_OUTPUTS_MARKER}"
+          python -m pytest -m "${STEPS_DECIDE_MARKERS_OUTPUTS_MARKER}"
 
       - name: Publish test report
         uses: dorny/test-reporter@3d76b34a4535afbd0600d347b09a6ee5deb3ed7f # v2.6.0

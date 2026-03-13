@@ -17,8 +17,12 @@ runs:
     - shell: bash
       run: |
         GIT_GLOBAL_OPTION=''
-        if [ ${{ inputs.global }} = true ] ; then
+        if [ ${INPUTS_GLOBAL} = true ] ; then
            GIT_GLOBAL_OPTION='--global'
         fi
-        git config $GIT_GLOBAL_OPTION user.name ${{ inputs.username }}
-        git config $GIT_GLOBAL_OPTION user.email ${{ inputs.email }}
+        git config $GIT_GLOBAL_OPTION user.name ${INPUTS_USERNAME}
+        git config $GIT_GLOBAL_OPTION user.email ${INPUTS_EMAIL}
+      env:
+        INPUTS_GLOBAL: ${{ inputs.global }}
+        INPUTS_USERNAME: ${{ inputs.username }}
+        INPUTS_EMAIL: ${{ inputs.email }}

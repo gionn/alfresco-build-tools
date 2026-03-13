@@ -81,8 +81,8 @@ runs:
       id: set-outputs
       run: |
         NGINX_ENABLED=${{ !contains(fromJson('["skip", "none"]'), inputs.ingress-nginx-ref) }}
-        TRAEFIK_ENABLED=${{ inputs.traefik-enabled }}
-        CLOUD_PROVIDER_KIND_ENABLED=${{ inputs.cloud-provider-kind-enabled }}
+        TRAEFIK_ENABLED=${INPUTS_TRAEFIK_ENABLED}
+        CLOUD_PROVIDER_KIND_ENABLED=${INPUTS_CLOUD_PROVIDER_KIND_ENABLED}
         KIND_CONFIG_PATH=${{ inputs.kind-config-path != '' && inputs.kind-config-path || '' }}
 
         if [ "$NGINX_ENABLED" == "true" ] && [ "$TRAEFIK_ENABLED" == "true" ]; then
@@ -109,6 +109,9 @@ runs:
 
         echo "Using kind config file: ${KIND_CONFIG_PATH}"
         echo "kind-config-path=${KIND_CONFIG_PATH}" >> $GITHUB_OUTPUT
+      env:
+        INPUTS_TRAEFIK_ENABLED: ${{ inputs.traefik-enabled }}
+        INPUTS_CLOUD_PROVIDER_KIND_ENABLED: ${{ inputs.cloud-provider-kind-enabled }}
 
     - name: Create cluster
       uses: helm/kind-action@ef37e7f390d99f746eb8b610417061a60e82a6cc # v1.14.0
@@ -157,16 +160,20 @@ runs:
       if: inputs.cloud-provider-kind-enabled == 'true'
       run: >-
         cloud-provider-kind
-        --enable-lb-port-mapping=${{ inputs.cloud-provider-kind-enable-lb-port-mapping }}
+        --enable-lb-port-mapping=${INPUTS_CLOUD_PROVIDER_KIND_ENABLE_LB_PORT_MAPPING}
         > /tmp/cloud-provider.log 2>&1 &
+      env:
+        INPUTS_CLOUD_PROVIDER_KIND_ENABLE_LB_PORT_MAPPING: ${{ inputs.cloud-provider-kind-enable-lb-port-mapping }}
 
     - name: Create registries auth secret
       shell: bash
       if: inputs.import-docker-credentials-secret-name != ''
       run: |
-        kubectl create secret generic ${{ inputs.import-docker-credentials-secret-name }} \
+        kubectl create secret generic ${INPUTS_IMPORT_DOCKER_CREDENTIALS_SECRET_NAME} \
           --from-file=.dockerconfigjson=$HOME/.docker/config.json \
           --type=kubernetes.io/dockerconfigjson
+      env:
+        INPUTS_IMPORT_DOCKER_CREDENTIALS_SECRET_NAME: ${{ inputs.import-docker-credentials-secret-name }}
 
     - name: Install ingress-nginx controller
       shell: bash
@@ -184,7 +191,7 @@ runs:
         kubectl wait --namespace ingress-nginx \
           --for=condition=ready pod \
           --selector=app.kubernetes.io/component=controller \
-          --timeout=${{ inputs.ingress-creation-timeout }} || {
+          --timeout=${INPUTS_INGRESS_CREATION_TIMEOUT} || {
             echo "Ingress controller failed to become ready. Debugging information:"
             echo "=== Pod Description ==="
             kubectl describe pods -n ingress-nginx -l app.kubernetes.io/component=controller
@@ -192,6 +199,8 @@ runs:
             kubectl logs -n ingress-nginx -l app.kubernetes.io/component=controller --tail=100
             exit 1
           }
+      env:
+        INPUTS_INGRESS_CREATION_TIMEOUT: ${{ inputs.ingress-creation-timeout }}
 
     - name: Apply nginx ingress class for traefik retrocompat
       shell: bash
@@ -212,11 +221,13 @@ runs:
       run: |
         helm repo add traefik https://traefik.github.io/charts
         helm upgrade --install traefik traefik/traefik \
-          --version ${{ inputs.traefik-chart-version }} \
+          --version ${INPUTS_TRAEFIK_CHART_VERSION} \
           --set providers.kubernetesIngressNginx.enabled=true \
           --set providers.kubernetesIngressNginx.watchIngressWithoutClass=true \
           -n traefik \
           --create-namespace
+      env:
+        INPUTS_TRAEFIK_CHART_VERSION: ${{ inputs.traefik-chart-version }}
 
     - name: Wait for Traefik ingress to be ready
       shell: bash
@@ -225,7 +236,7 @@ runs:
         kubectl wait --namespace traefik \
           --for=condition=ready pod \
           --selector=app.kubernetes.io/name=traefik \
-          --timeout=${{ inputs.ingress-creation-timeout }} || {
+          --timeout=${INPUTS_INGRESS_CREATION_TIMEOUT} || {
             echo "Traefik ingress controller failed to become ready. Debugging information:"
             echo "=== Pod Description ==="
             kubectl describe pods -n traefik -l app.kubernetes.io/name=traefik
@@ -233,6 +244,8 @@ runs:
             kubectl logs -n traefik -l app.kubernetes.io/name=traefik --tail=100
             exit 1
           }
+      env:
+        INPUTS_INGRESS_CREATION_TIMEOUT: ${{ inputs.ingress-creation-timeout }}
 
     - name: Wait and return the HTTP endpoint of the ingress controller
       id: get-ingress-endpoint
@@ -241,6 +254,7 @@ runs:
       env:
         INGRESS_NAMESPACE: ${{ steps.set-outputs.outputs.ingress == 'nginx' && 'ingress-nginx' || 'traefik' }}
         INGRESS_SERVICE_NAME: ${{ steps.set-outputs.outputs.ingress == 'nginx' && 'ingress-nginx-controller' || 'traefik' }}
+        INPUTS_CLOUD_PROVIDER_KIND_ENABLE_LB_PORT_MAPPING: ${{ inputs.cloud-provider-kind-enable-lb-port-mapping }}
       run: |
         # Retry loop to wait for LoadBalancer IP
         for i in {1..30}; do
@@ -259,7 +273,7 @@ runs:
           exit 1
         fi
 
-        if [ "${{ inputs.cloud-provider-kind-enable-lb-port-mapping }}" == "true" ]; then
+        if [ "${INPUTS_CLOUD_PROVIDER_KIND_ENABLE_LB_PORT_MAPPING}" == "true" ]; then
           EXTERNAL_IP="localhost"
 
           echo "cloud-provider-kind LB port mapping enabled, retrieving mapped port from docker..."

@@ -114,8 +114,17 @@ runs:
         CODEQL_ROOT: /opt/hostedtoolcache/CodeQL
         SWIFT_ROOT: /usr/share/swift
         POWERSHELL_ROOT: /usr/local/share/powershell
+        INPUTS_REMOVE_DOTNET: ${{ inputs.remove-dotnet }}
+        INPUTS_REMOVE_ANDROID: ${{ inputs.remove-android }}
+        INPUTS_REMOVE_HASKELL: ${{ inputs.remove-haskell }}
+        INPUTS_REMOVE_CODEQL: ${{ inputs.remove-codeql }}
+        INPUTS_REMOVE_TOOLS_CACHE: ${{ inputs.remove-tools-cache }}
+        INPUTS_REMOVE_SWIFT: ${{ inputs.remove-swift }}
+        INPUTS_REMOVE_POWERSHELL: ${{ inputs.remove-powershell }}
+        INPUTS_REMOVE_DOCKER_IMAGES: ${{ inputs.remove-docker-images }}
+        INPUTS_REMOVE_PATHS: ${{ inputs.remove-paths }}
       run: |
-        if [[ ${{ inputs.remove-dotnet }} == 'true' && -d $DOTNET_ROOT ]]; then
+        if [[ ${INPUTS_REMOVE_DOTNET} == 'true' && -d $DOTNET_ROOT ]]; then
           echo "Removing .NET runtime and libraries..."
           start_time=$(date +%s)
           du -sh $DOTNET_ROOT
@@ -126,7 +135,7 @@ runs:
           echo "$DOTNET_ROOT not found"
         fi
 
-        if [[ ${{ inputs.remove-android }} == 'true' && -d $ANDROID_ROOT ]]; then
+        if [[ ${INPUTS_REMOVE_ANDROID} == 'true' && -d $ANDROID_ROOT ]]; then
           echo "Removing Android SDKs and Tools..."
           start_time=$(date +%s)
           du -sh $ANDROID_ROOT
@@ -137,7 +146,7 @@ runs:
           echo "$ANDROID_ROOT not found"
         fi
 
-        if [[ ${{ inputs.remove-haskell }} == 'true' && -d $HASKELL_ROOT ]]; then
+        if [[ ${INPUTS_REMOVE_HASKELL} == 'true' && -d $HASKELL_ROOT ]]; then
           echo "Removing GHC (Haskell) artifacts..."
           start_time=$(date +%s)
           du -sh $HASKELL_ROOT
@@ -148,7 +157,7 @@ runs:
           echo "$HASKELL_ROOT not found"
         fi
 
-        if [[ ${{ inputs.remove-codeql }} == 'true' && -d $CODEQL_ROOT ]]; then
+        if [[ ${INPUTS_REMOVE_CODEQL} == 'true' && -d $CODEQL_ROOT ]]; then
           echo "Removing CodeQL Action Bundles..."
           start_time=$(date +%s)
           du -sh $CODEQL_ROOT
@@ -159,7 +168,7 @@ runs:
           echo "$CODEQL_ROOT not found"
         fi
 
-        if [[ ${{ inputs.remove-tools-cache }} == 'true' && -d $AGENT_TOOLSDIRECTORY ]]; then
+        if [[ ${INPUTS_REMOVE_TOOLS_CACHE} == 'true' && -d $AGENT_TOOLSDIRECTORY ]]; then
           echo "Removing tools and dependencies cache..."
           start_time=$(date +%s)
           du -sh $AGENT_TOOLSDIRECTORY
@@ -170,7 +179,7 @@ runs:
           echo "$AGENT_TOOLSDIRECTORY not found"
         fi
 
-        if [[ ${{ inputs.remove-swift }} == 'true' && -d $SWIFT_ROOT ]]; then
+        if [[ ${INPUTS_REMOVE_SWIFT} == 'true' && -d $SWIFT_ROOT ]]; then
           echo "Removing Swift toolchain and libraries..."
           start_time=$(date +%s)
           du -sh $SWIFT_ROOT
@@ -181,7 +190,7 @@ runs:
           echo "$SWIFT_ROOT not found"
         fi
 
-        if [[ ${{ inputs.remove-powershell }} == 'true' && -d $POWERSHELL_ROOT ]]; then
+        if [[ ${INPUTS_REMOVE_POWERSHELL} == 'true' && -d $POWERSHELL_ROOT ]]; then
           echo "Removing PowerShell Core installation..."
           start_time=$(date +%s)
           du -sh $POWERSHELL_ROOT
@@ -192,7 +201,7 @@ runs:
           echo "$POWERSHELL_ROOT not found"
         fi
 
-        if [[ ${{ inputs.remove-docker-images }} == 'true' ]]; then
+        if [[ ${INPUTS_REMOVE_DOCKER_IMAGES} == 'true' ]]; then
           echo "Removing cached Docker images..."
           start_time=$(date +%s)
           sudo docker image prune --all --force
@@ -200,7 +209,7 @@ runs:
           echo "Removed in $((end_time - start_time)) seconds"
         fi
 
-        to_remove="${{ inputs.remove-paths }}"
+        to_remove="${INPUTS_REMOVE_PATHS}"
         if [[ -n "$to_remove" ]]; then
           echo "Removing additional files/folders..."
           start_time=$(date +%s)

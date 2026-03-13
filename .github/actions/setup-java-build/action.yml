@@ -31,13 +31,15 @@ runs:
       shell: bash
       run: |
         mkdir -p ~/.m2
-        if [ -f "${{ inputs.maven-settings }}" ]; then
-          echo "Installing Maven settings file found in the repository: ${{ inputs.maven-settings }}"
-          cp "${{ inputs.maven-settings }}" ~/.m2/settings.xml
+        if [ -f "${INPUTS_MAVEN_SETTINGS}" ]; then
+          echo "Installing Maven settings file found in the repository: ${INPUTS_MAVEN_SETTINGS}"
+          cp "${INPUTS_MAVEN_SETTINGS}" ~/.m2/settings.xml
         else
-          echo "Maven settings file: ${{ inputs.maven-settings }} not found in the repository. Installing the default one"
+          echo "Maven settings file: ${INPUTS_MAVEN_SETTINGS} not found in the repository. Installing the default one"
           cp ${{ github.action_path }}/settings.xml ~/.m2/settings.xml
         fi
+      env:
+        INPUTS_MAVEN_SETTINGS: ${{ inputs.maven-settings }}
     - name: "Set up Java"
       uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
       with:

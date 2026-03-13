@@ -14,11 +14,14 @@ runs:
     - name: Parse env global
       run: |
         while read ENVVAR; do
-          if [[ "$ENVVAR" =~ ${{ inputs.ignore_regex }} ]]; then
+          if [[ "$ENVVAR" =~ ${INPUTS_IGNORE_REGEX} ]]; then
             echo "Skipping unwanted $ENVVAR"
             continue
           fi
           eval $ENVVAR
           echo "$(eval echo $ENVVAR)" >> $GITHUB_ENV
-        done < <(yq '.env.global[]' ${{ inputs.yml_path }})
+        done < <(yq '.env.global[]' ${INPUTS_YML_PATH})
       shell: bash
+      env:
+        INPUTS_IGNORE_REGEX: ${{ inputs.ignore_regex }}
+        INPUTS_YML_PATH: ${{ inputs.yml_path }}

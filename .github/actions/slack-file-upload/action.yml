@@ -36,11 +36,16 @@ runs:
 
     - name: Install requirements via pip
       shell: bash
-      run: ${{ steps.setup-python.outputs.python-path }} -m pip install -r ${{ github.action_path }}/requirements.txt
+      run: ${STEPS_SETUP_PYTHON_OUTPUTS_PYTHON_PATH} -m pip install -r ${{ github.action_path }}/requirements.txt
+      env:
+        STEPS_SETUP_PYTHON_OUTPUTS_PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
 
     - name: Upload ${{ inputs.file-path }} to Slack
       shell: bash
       env:
         SLACK_BOT_TOKEN: ${{ inputs.slack-token }}
         SLACK_CHANNEL_ID: ${{ inputs.slack-channel-id }}
-      run: ${{ steps.setup-python.outputs.python-path }} ${{ github.action_path }}/slack_file_upload.py "${{ inputs.file-path }}" "${{ inputs.file-title }}"
+        STEPS_SETUP_PYTHON_OUTPUTS_PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+        INPUTS_FILE_PATH: ${{ inputs.file-path }}
+        INPUTS_FILE_TITLE: ${{ inputs.file-title }}
+      run: ${STEPS_SETUP_PYTHON_OUTPUTS_PYTHON_PATH} ${{ github.action_path }}/slack_file_upload.py "${INPUTS_FILE_PATH}" "${INPUTS_FILE_TITLE}"
